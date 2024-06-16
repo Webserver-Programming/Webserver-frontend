@@ -1,51 +1,74 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import SignUpModal from './SignUpModal';
 import './NavbarStyles.css';
 import { MenuItems } from './MenuItems';
-import { Link } from 'react-router-dom';
-import SignUpModal from './SignUpModal'; // 모달 컴포넌트 임포트
 
-class Navbar extends Component {
-  state = {
-    clicked: false,
-    showModal: false, // 모달 상태 추가
+const Navbar = () => {
+  const [clicked, setClicked] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+
+  const handleClicked = () => {
+    setClicked(!clicked);
   };
 
-  handleClicked = () => {
-    this.setState({ clicked: !this.state.clicked });
+  const handleModal = () => {
+    setShowModal(!showModal);
   };
 
-  handleModal = () => {
-    this.setState({ showModal: !this.state.showModal });
+  const handleLogout = () => {
+    console.log('Logging out...');
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    window.location.href = '/'; // 홈 화면으로 리디렉션
   };
 
-  render() {
-    return (
-      <nav className="NavbarItems">
-        <h1 className="navbar-logo">사랑愛에 더하다</h1>
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('useEffect - token:', token);
+    setIsLoggedIn(!!token);
+  }, []);
 
-        <div className="menu-icons" onClick={this.handleClicked}>
-          <i
-            className={this.state.clicked ? 'fas fa-times' : 'fas fa-bars'}
-          ></i>
-        </div>
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      console.log('handleStorageChange - token:', token);
+      setIsLoggedIn(!!token);
+    };
 
-        <ul className={this.state.clicked ? 'nav-menu active' : 'nav-menu'}>
-          {MenuItems.map((item, index) => {
-            return (
-              <li key={index}>
-                <Link className={item.cName} to={item.url}>
-                  <i className={item.icon}></i>
-                  {item.title}
-                </Link>
-              </li>
-            );
-          })}
-          <button onClick={this.handleModal}>Sign Up</button>
-        </ul>
-        {this.state.showModal && <SignUpModal handleModal={this.handleModal} />}
-      </nav>
-    );
-  }
-}
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  return (
+    <nav className="NavbarItems">
+      <h1 className="navbar-logo">사랑愛에 더하다</h1>
+
+      <div className="menu-icons" onClick={handleClicked}>
+        <i className={clicked ? 'fas fa-times' : 'fas fa-bars'}></i>
+      </div>
+
+      <ul className={clicked ? 'nav-menu active' : 'nav-menu'}>
+        {MenuItems.map((item, index) => (
+          <li key={index}>
+            <Link className={item.cName} to={item.url}>
+              <i className={item.icon}></i>
+              {item.title}
+            </Link>
+          </li>
+        ))}
+        {isLoggedIn ? (
+          <button onClick={handleLogout}>Logout</button>
+        ) : (
+          <button onClick={handleModal}>Sign Up / Login</button>
+        )}
+      </ul>
+      {showModal && <SignUpModal handleModal={handleModal} />}
+    </nav>
+  );
+};
 
 export default Navbar;

@@ -56,6 +56,13 @@ button:hover {
   background-color: #017d7e;
 }
 
+.success-message {
+  color: green;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 10px;
+}
+
 .toggle-form {
   color: #01959a;
   cursor: pointer;
